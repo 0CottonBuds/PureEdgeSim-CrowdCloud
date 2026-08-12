@@ -297,6 +297,23 @@
 				</configuration>
 			</plugin>
 
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<!-- Give PureEdgeSim enough heap to run simulations from Maven -->
+					<executable>java</executable>
+					<arguments>
+						<argument>-Xmx2g</argument>
+						<argument>-Xms512m</argument>
+						<argument>-classpath</argument>
+						<classpath/>
+						<argument>${exec.mainClass}</argument>
+					</arguments>
+				</configuration>
+			</plugin>
+
 			<!-- Plugin for code coverage, enabling generation of reports on IDE
 			to 
 				see percentage of the project's code that is being covered by unit tests. -->
@@ -396,6 +413,12 @@
 			<version>3.0</version>
 			<scope>system</scope>
 			<systemPath>${project.basedir}/PureEdgeSim/libs/jFuzzyLogic_v3.0.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>com.kohlschutter.junixsocket</groupId>
+			<artifactId>junixsocket-core</artifactId>
+			<version>2.6.2</version>
+			<type>pom</type>
 		</dependency>
 	</dependencies>
 </project>

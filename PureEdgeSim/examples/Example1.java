@@ -18,7 +18,8 @@
  *     
  *     @author Charafeddine Mechalikh
  **/
-package examples; 
+package examples;
+
 import com.mechalikh.pureedgesim.datacentersmanager.DefaultTopologyCreator;
 import com.mechalikh.pureedgesim.network.DefaultNetworkModel;
 import com.mechalikh.pureedgesim.simulationmanager.DefaultSimulationManager;
