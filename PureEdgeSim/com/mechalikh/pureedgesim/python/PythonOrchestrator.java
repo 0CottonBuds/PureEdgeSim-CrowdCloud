@@ -18,10 +18,13 @@
  **/
 package com.mechalikh.pureedgesim.python;
 
+import com.mechalikh.pureedgesim.datacentersmanager.ComputingNode;
+import com.mechalikh.pureedgesim.simulationengine.Event;
 import com.mechalikh.pureedgesim.simulationmanager.SimulationManager;
 import com.mechalikh.pureedgesim.taskgenerator.Task;
 import com.mechalikh.pureedgesim.taskorchestrator.Orchestrator;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.SocketTimeoutException;
@@ -144,12 +147,19 @@ public class PythonOrchestrator extends Orchestrator {
             throw new IllegalStateException("Socket path already in active set: " + socketPath);
         }
 
+        File venvPy = new File("python/.venv/bin/python");
+        String pythonExec = venvPy.exists() ? venvPy.getAbsolutePath() : "python3";
+
         try {
             ProcessBuilder pb = new ProcessBuilder(
-                    "python3", "-m", "pureedgesim._bridge.server",
+                    pythonExec, "-m", "pureedgesim._bridge.server",
                     "--socket", socketPath,
                     "--orchestrator", pythonOrchestratorClass
             );
+            File pyDir = new File("python");
+            if (pyDir.exists()) {
+                pb.environment().put("PYTHONPATH", pyDir.getAbsolutePath());
+            }
             pb.inheritIO();
             this.pythonProcess = pb.start();
         } catch (IOException e) {
@@ -200,12 +210,23 @@ public class PythonOrchestrator extends Orchestrator {
         try {
             String reqJson = MessageBuilder.buildDecisionRequest(
                     reqId, task, simulationManager, nodeList, LOOK_AHEAD_WINDOW_SIZE);
+
             bridge.send(reqJson);
 
             String respJson = bridge.recv();
+
             int chosenIndex = MessageParser.getNodeIndex(respJson);
-            taskIdToNodeIndex.put(task.getId(), chosenIndex);
-            return chosenIndex;
+
+            if (nodeList != null && chosenIndex >= 0 && chosenIndex < nodeList.size()) {
+                taskIdToNodeIndex.put(task.getId(), chosenIndex);
+                return chosenIndex;
+            } else if (nodeList == null && chosenIndex >= 0) {
+                taskIdToNodeIndex.put(task.getId(), chosenIndex);
+                return chosenIndex;
+            }
+
+            taskIdToNodeIndex.put(task.getId(), -1);
+            return -1;
         } catch (BridgeCrashException e) {
             simLog.deepLog("Python bridge process crashed during decision request: " + e.getMessage());
             return -1;
@@ -246,6 +267,11 @@ public class PythonOrchestrator extends Orchestrator {
     /**
      * Lifecycle callback invoked at simulation conclusion to perform clean shutdown of socket and Python process.
      */
+    @Override
+    public void processEvent(Event event) {
+        // No custom simulation events processed by PythonOrchestrator
+    }
+
     public void onSimulationEnd() {
         if (bridge != null) {
             try {

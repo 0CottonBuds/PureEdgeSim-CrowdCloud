@@ -301,7 +301,6 @@ public class DefaultSimulationManager extends SimulationManager implements OnSim
 
 			// Stop if no resource is available for this task, the offloading is failed.
 			if (task.getOffloadingDestination() == ComputingNode.NULL) {
-
 				task.setFailureReason(Task.FailureReason.NO_OFFLOADING_DESTINATIONS);
 				simLog.incrementTasksFailedLackOfRessources(task);
 				tasksCount++;

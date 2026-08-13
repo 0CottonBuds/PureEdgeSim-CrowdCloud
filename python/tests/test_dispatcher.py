@@ -125,7 +125,7 @@ def test_dispatcher_lifecycle(tmp_path):
     t.start()
     time.sleep(0.05)
 
-    conn = Connection(sock_path)
+    conn = Connection(sock_path, server=False)
     orch = DummyOrchestrator()
     dispatcher = Dispatcher(conn, orch)
     dispatcher.run()

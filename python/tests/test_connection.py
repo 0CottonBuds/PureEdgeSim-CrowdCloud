@@ -31,7 +31,7 @@ def test_echo_round_trip(tmp_path):
     t.start()
     time.sleep(0.05)
 
-    c = Connection(sock_path)
+    c = Connection(sock_path, server=False)
     c.send('{"type":"PING"}')
     assert c.recv() == '{"type":"PING"}'
     c.close()
@@ -40,7 +40,7 @@ def test_echo_round_trip(tmp_path):
 def test_connection_timeout(tmp_path):
     sock_path = str(tmp_path / "nonexistent.sock")
     with pytest.raises(ConnectionError):
-        Connection(sock_path, connect_timeout=0.2)
+        Connection(sock_path, connect_timeout=0.2, server=False)
 
 
 def test_double_close_is_idempotent(tmp_path):
@@ -58,6 +58,6 @@ def test_double_close_is_idempotent(tmp_path):
     t.start()
     time.sleep(0.05)
 
-    c = Connection(sock_path)
+    c = Connection(sock_path, server=False)
     c.close()
     c.close()  # Must not raise

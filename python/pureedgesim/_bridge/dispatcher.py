@@ -111,6 +111,7 @@ class Dispatcher:
 
     def _handle_decision_request(self, msg: Dict[str, Any]) -> None:
         """Handle DECISION_REQUEST message from Java."""
+        req_id = msg.get('request_id', 0)
         task, state = build_state_from_decision_request(msg, self._nodes)
         self._task_cache[task.id] = task
 
@@ -131,7 +132,7 @@ class Dispatcher:
 
         self._conn.send(encode({
             'type': 'DECISION_RESPONSE',
-            'request_id': msg.get('request_id', 0),
+            'request_id': req_id,
             'node_index': chosen_node_index,
         }))
 

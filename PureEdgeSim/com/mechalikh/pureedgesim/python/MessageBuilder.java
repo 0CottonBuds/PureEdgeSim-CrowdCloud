@@ -251,7 +251,13 @@ public class MessageBuilder {
         int edgeDevId = task.getEdgeDevice() != null ? task.getEdgeDevice().getId() : -1;
         int edgeDevIndex = -1;
         if (nodeList != null && task.getEdgeDevice() != null) {
-            edgeDevIndex = nodeList.indexOf(task.getEdgeDevice());
+            int targetId = task.getEdgeDevice().getId();
+            for (int i = 0; i < nodeList.size(); i++) {
+                if (nodeList.get(i).getId() == targetId) {
+                    edgeDevIndex = i;
+                    break;
+                }
+            }
         }
 
         sb.append("{");

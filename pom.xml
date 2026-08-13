@@ -218,6 +218,7 @@
 	</profiles>
 
 	<build>
+		<sourceDirectory>PureEdgeSim</sourceDirectory>
 		<pluginManagement>
 			<!-- Plugins to be reused for different <profile>'s -->
 			<plugins>

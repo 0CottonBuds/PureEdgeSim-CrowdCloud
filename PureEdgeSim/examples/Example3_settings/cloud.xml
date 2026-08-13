@@ -6,7 +6,7 @@
 		<isOrchestrator>false</isOrchestrator> <!-- it has a task orchestrator or not  -->
 		<cores>200</cores>
 		<mips>40000</mips>
-		<ram>16000</ram>
+		<ram>1000000</ram>
 		<storage>1000000</storage>
 	</datacenter>
 </cloud_data_centers>

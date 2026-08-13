@@ -2,6 +2,7 @@
 Unix Domain Socket connection handling for Python side of the bridge.
 """
 
+import os
 import socket
 import struct
 import time
@@ -11,37 +12,63 @@ class Connection:
     """
     Unix domain socket I/O with 4-byte big-endian length-prefix framing.
 
-    Connects to an existing Unix socket file (created by Java's ProcessBuilder / JavaBridge).
+    Supports both Server mode (listening for Java client) and Client mode.
     """
 
-    def __init__(self, socket_path: str, connect_timeout: float = 10.0) -> None:
+    def __init__(self, socket_path: str, connect_timeout: float = 10.0, server: bool = True) -> None:
         """
-        Connect to the Unix socket at socket_path.
-
-        Retries every 100ms until connect_timeout seconds elapse.
-        Raises ConnectionError if the socket never becomes available.
+        Initialize socket connection.
 
         Args:
-            socket_path: Absolute path to the Unix domain socket file created by Java.
-            connect_timeout: Maximum time in seconds to wait for socket file connection.
+            socket_path: Absolute path to the Unix domain socket file.
+            connect_timeout: Maximum time in seconds to connect or accept.
+            server: If True (default), bind/listen as server and accept client.
+                    If False, connect as client to an existing socket server.
 
         Raises:
-            ConnectionError: If connection cannot be established within connect_timeout seconds.
+            ConnectionError: If connection cannot be established.
         """
-        deadline = time.monotonic() + connect_timeout
-        last_err = None
-        while time.monotonic() < deadline:
+        self._socket_path = socket_path
+
+        if server:
+            if os.path.exists(socket_path):
+                try:
+                    os.unlink(socket_path)
+                except OSError:
+                    pass
+
+            server_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            server_sock.bind(socket_path)
+            server_sock.listen(1)
+            server_sock.settimeout(connect_timeout)
+
             try:
-                self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                self._sock.connect(socket_path)
-                return
-            except (FileNotFoundError, ConnectionRefusedError) as e:
-                last_err = e
-                self._sock.close()
-                time.sleep(0.1)
-        raise ConnectionError(
-            f"Could not connect to Unix socket '{socket_path}' within {connect_timeout}s. Last error: {last_err}"
-        )
+                self._sock, _ = server_sock.accept()
+            except socket.timeout:
+                server_sock.close()
+                raise ConnectionError(f"Timed out waiting for Java connection on socket '{socket_path}'")
+            except Exception as e:
+                server_sock.close()
+                raise ConnectionError(f"Failed to accept connection on socket '{socket_path}': {e}")
+            finally:
+                server_sock.close()
+        else:
+            deadline = time.monotonic() + connect_timeout
+            last_err = None
+            while time.monotonic() < deadline:
+                try:
+                    self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                    self._sock.connect(socket_path)
+                    return
+                except (FileNotFoundError, ConnectionRefusedError) as e:
+                    last_err = e
+                    self._sock.close()
+                    time.sleep(0.1)
+            raise ConnectionError(
+                f"Could not connect to Unix socket '{socket_path}' within {connect_timeout}s. Last error: {last_err}"
+            )
+
+        self._sock.settimeout(None)
 
     def send(self, payload: str) -> None:
         """
