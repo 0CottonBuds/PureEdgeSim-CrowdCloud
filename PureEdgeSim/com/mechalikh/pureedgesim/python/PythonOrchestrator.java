@@ -22,143 +22,271 @@ import com.mechalikh.pureedgesim.simulationmanager.SimulationManager;
 import com.mechalikh.pureedgesim.taskgenerator.Task;
 import com.mechalikh.pureedgesim.taskorchestrator.Orchestrator;
 
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.net.SocketTimeoutException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
- * A custom {@link Orchestrator} that delegates all offloading decisions to an
- * external Python process connected via a Unix domain socket.
+ * Custom PureEdgeSim {@link Orchestrator} that delegates offloading placement decisions
+ * to an external Python process connected over Unix Domain Sockets.
  *
- * <h2>Protocol Overview</h2>
+ * <h2>Architecture &amp; Lifecycle</h2>
  * <ol>
- *   <li>On construction Java launches the Python bridge process and performs the
- *       {@code EPISODE_INIT} / {@code READY_ACK} handshake.</li>
- *   <li>For each task, {@link #findComputingNode} sends a {@code DECISION_REQUEST}
- *       JSON message and reads back a {@code DECISION_RESPONSE} containing the
- *       chosen {@code node_index}.</li>
- *   <li>After task completion, {@link #resultsReturned} sends a {@code TASK_RESULT}
- *       message (fire-and-forget).</li>
- *   <li>At simulation end, an {@code EPISODE_END} / {@code SHUTDOWN_ACK}
- *       exchange closes the connection cleanly.</li>
+ *   <li><b>Process Launch &amp; Handshake:</b> Upon instantiation, computes a unique socket path
+ *       (e.g., {@code /tmp/pureedgesim_orch_<pid>_<episodeId>.sock}), launches Python via {@link ProcessBuilder},
+ *       and completes the 3-step handshake ({@code READY} &rarr; {@code EPISODE_INIT} &rarr; {@code READY_ACK}).</li>
+ *   <li><b>Decision Request / Response:</b> In {@link #findComputingNode(String[], Task)}, formats a synchronous
+ *       {@code DECISION_REQUEST} message via {@link MessageBuilder}, transmits it over {@link JavaBridge}, and waits
+ *       for a {@code DECISION_RESPONSE}. Returns the target {@code node_index} to PureEdgeSim.</li>
+ *   <li><b>Asynchronous Result Feedback:</b> In {@link #resultsReturned(Task)}, sends a fire-and-forget
+ *       {@code TASK_RESULT} message to Python with execution delays and failure statuses.</li>
+ *   <li><b>Episode Teardown:</b> In {@link #onSimulationEnd()}, sends {@code EPISODE_END}, waits for {@code SHUTDOWN_ACK},
+ *       and terminates the Python child process cleanly.</li>
  * </ol>
  *
- * <h2>Phase 4.1 Status</h2>
- * <p>This is the initial stub. {@link #findComputingNode} always returns {@code -1}
- * so all tasks fail with {@code NO_OFFLOADING_DESTINATIONS}. The full
- * implementation is built progressively in Phases 4.2 – 4.7.</p>
+ * <h2>Configuring the Python Algorithm</h2>
+ * <p>To specify which Python orchestrator class to execute, call {@link #setOrchestratorClass(String)}
+ * prior to launching the simulation, e.g.:</p>
+ * <pre>{@code
+ *   PythonOrchestrator.setOrchestratorClass("examples.run_round_robin.RoundRobinOrchestrator");
+ *   sim.setCustomEdgeOrchestrator(PythonOrchestrator.class);
+ *   sim.launchSimulation();
+ * }</pre>
  *
- * @author Python Bridge — Phase 4.1
+ * @author Python Bridge — Phase 4.3
  * @see JavaBridge
  * @see MessageBuilder
  * @see MessageParser
  */
 public class PythonOrchestrator extends Orchestrator {
 
-    // -----------------------------------------------------------------------
-    // Static configuration (set before launching the simulation)
-    // -----------------------------------------------------------------------
-
-    /**
-     * Fully-qualified Python class name to use as the orchestrator algorithm,
-     * e.g. {@code "examples.run_round_robin.RoundRobinOrchestrator"}.
-     *
-     * <p>Set this with {@link #setOrchestratorClass(String)} before calling
-     * {@code sim.launchSimulation()}. Defaults to the round-robin example.</p>
-     *
-     * TODO (Phase 4.3): use this in ProcessBuilder when launching Python.
-     */
+    /** Fully-qualified Python module and class name to instantiate as the orchestrator. */
     private static volatile String pythonOrchestratorClass =
             "examples.run_round_robin.RoundRobinOrchestrator";
 
+    /** Global atomic counter ensuring unique episode IDs per instance. */
+    private static final AtomicInteger instanceCounter = new AtomicInteger(0);
+
+    /** Thread-safe set tracking active socket paths to prevent concurrent socket collisions. */
+    private static final Set<String> activeSockets = Collections.synchronizedSet(new HashSet<>());
+
+    /** Maximum lookahead window size for pending tasks sent in decision requests. */
+    private static final int LOOK_AHEAD_WINDOW_SIZE = 20;
+
+    /** Low-level socket I/O bridge connection to Python. */
+    private JavaBridge bridge;
+
+    /** Handle to the launched Python subprocess. */
+    private Process pythonProcess;
+
+    /** Path to the Unix domain socket file created for this episode. */
+    private String socketPath;
+
+    /** Sequence counter for decision requests. */
+    private int requestIdCounter = 0;
+
+    /** Unique simulation episode ID. */
+    private int episodeId;
+
+    /** Maps task ID to request ID for correlation when reporting task results. */
+    private final Map<Integer, Integer> taskIdToRequestId = new HashMap<>();
+
+    /** Maps task ID to chosen node index for task result reporting. */
+    private final Map<Integer, Integer> taskIdToNodeIndex = new HashMap<>();
+
     /**
-     * Sets the Python orchestrator class to use for the next simulation run.
+     * Sets the fully-qualified Python orchestrator class name to be loaded by the Python server.
      *
-     * @param dotted fully-qualified Python module.ClassName string
+     * @param dotted fully-qualified module.ClassName string (e.g. {@code "examples.run_dqn.DQNOrchestrator"})
      */
     public static void setOrchestratorClass(String dotted) {
         pythonOrchestratorClass = dotted;
     }
 
-    // -----------------------------------------------------------------------
-    // Instance fields (populated in Phases 4.2 and 4.3)
-    // -----------------------------------------------------------------------
-
-    // TODO (Phase 4.2): JavaBridge bridge;
-    // TODO (Phase 4.3): int requestIdCounter = 0;
-    // TODO (Phase 4.3): static final int LOOK_AHEAD_WINDOW_SIZE = 20;
-    // TODO (Phase 4.3): Map<Integer, Integer> taskIdToRequestId = new HashMap<>();
-    // TODO (Phase 4.3): Map<Integer, Integer> taskIdToNodeIndex  = new HashMap<>();
-    // TODO (Phase 4.3): static Set<String>   activeSockets (parallelism guard)
-    // TODO (Phase 4.3): String socketPath (computed from PID + simId)
-
-    // -----------------------------------------------------------------------
-    // Constructor
-    // -----------------------------------------------------------------------
-
     /**
-     * Initialises this orchestrator within the running simulation.
+     * Constructs a new PythonOrchestrator, launching the Python subprocess and performing handshake.
      *
-     * <p>{@code super(simulationManager)} calls {@link Orchestrator#initialize()}
-     * which populates {@link #nodeList} and {@link #architectureLayers} based on
-     * the configured architecture name. This happens before any task arrives.</p>
-     *
-     * <p>TODO (Phase 4.3): After {@code super()}, compute a unique socket path,
-     * launch the Python process via {@code ProcessBuilder}, and perform the
-     * {@code EPISODE_INIT} / {@code READY_ACK} handshake.</p>
-     *
-     * @param simulationManager the running simulation manager instance
+     * @param simulationManager the active simulation manager instance
      */
     public PythonOrchestrator(SimulationManager simulationManager) {
         super(simulationManager);
-        // TODO (Phase 4.3): launch Python process and perform handshake
+        initBridge();
     }
 
-    // -----------------------------------------------------------------------
-    // Orchestrator contract
-    // -----------------------------------------------------------------------
+    /**
+     * Package-private constructor for unit testing with a pre-configured or mocked {@link JavaBridge}.
+     *
+     * @param simulationManager active simulation manager
+     * @param bridge pre-initialized or mocked JavaBridge instance
+     */
+    PythonOrchestrator(SimulationManager simulationManager, JavaBridge bridge) {
+        super(simulationManager);
+        this.bridge = bridge;
+        this.socketPath = null;
+        this.pythonProcess = null;
+    }
 
     /**
-     * Selects a computing node for the given task.
+     * Computes socket path, spawns the Python subprocess, connects {@link JavaBridge}, and executes the initial handshake.
+     */
+    private void initBridge() {
+        int pid = getPid();
+        this.episodeId = instanceCounter.incrementAndGet();
+        this.socketPath = "/tmp/pureedgesim_orch_" + pid + "_" + episodeId + ".sock";
+
+        if (!activeSockets.add(socketPath)) {
+            throw new IllegalStateException("Socket path already in active set: " + socketPath);
+        }
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "python3", "-m", "pureedgesim._bridge.server",
+                    "--socket", socketPath,
+                    "--orchestrator", pythonOrchestratorClass
+            );
+            pb.inheritIO();
+            this.pythonProcess = pb.start();
+        } catch (IOException e) {
+            activeSockets.remove(socketPath);
+            simLog.deepLog("Failed to launch Python bridge process: " + e.getMessage());
+            return;
+        }
+
+        try {
+            this.bridge = new JavaBridge(socketPath, 10_000);
+
+            // Handshake step 1: receive READY
+            String readyMsg = bridge.recv();
+            if (!"READY".equals(MessageParser.getType(readyMsg))) {
+                throw new IllegalStateException("Expected READY message from Python, got: " + readyMsg);
+            }
+
+            // Handshake step 2: send EPISODE_INIT
+            bridge.send(MessageBuilder.buildEpisodeInit(episodeId, simulationManager, nodeList));
+
+            // Handshake step 3: receive READY_ACK
+            String ackMsg = bridge.recv();
+            if (!"READY".equalsIgnoreCase(MessageParser.getStatus(ackMsg))) {
+                throw new IllegalStateException("Expected READY status in READY_ACK, got: " + ackMsg);
+            }
+        } catch (Exception e) {
+            simLog.deepLog("PythonOrchestrator bridge init failed: " + e.getMessage());
+            closeBridge();
+        }
+    }
+
+    /**
+     * Determines placement destination for an incoming task by requesting a decision from Python.
      *
-     * <p><b>Phase 4.1 stub:</b> always returns {@code -1}, causing the task to
-     * fail with {@code NO_OFFLOADING_DESTINATIONS}.</p>
-     *
-     * <p>TODO (Phase 4.3): send {@code DECISION_REQUEST} via {@link JavaBridge},
-     * read {@code DECISION_RESPONSE}, return the {@code node_index} field.</p>
-     *
-     * @param architectureLayers the architecture layers in scope (e.g. "Cloud", "Edge")
-     * @param task               the task that needs to be placed
-     * @return index into {@link #nodeList}, or {@code -1} to signal failure
+     * @param architectureLayers target architecture layers (e.g. Edge, Cloud)
+     * @param task the incoming task to place
+     * @return the selected node index into {@link #nodeList}, or {@code -1} if placement fails or error occurs
      */
     @Override
     protected int findComputingNode(String[] architectureLayers, Task task) {
-        // TODO (Phase 4.3): implement decision request/response round-trip
-        return -1;
+        if (bridge == null || task == null) {
+            return -1;
+        }
+
+        int reqId = requestIdCounter++;
+        taskIdToRequestId.put(task.getId(), reqId);
+
+        try {
+            String reqJson = MessageBuilder.buildDecisionRequest(
+                    reqId, task, simulationManager, nodeList, LOOK_AHEAD_WINDOW_SIZE);
+            bridge.send(reqJson);
+
+            String respJson = bridge.recv();
+            int chosenIndex = MessageParser.getNodeIndex(respJson);
+            taskIdToNodeIndex.put(task.getId(), chosenIndex);
+            return chosenIndex;
+        } catch (BridgeCrashException e) {
+            simLog.deepLog("Python bridge process crashed during decision request: " + e.getMessage());
+            return -1;
+        } catch (SocketTimeoutException e) {
+            simLog.deepLog("Python bridge timed out waiting for decision response for task " + task.getId());
+            return -1;
+        } catch (IOException e) {
+            simLog.deepLog("I/O error communicating with Python bridge: " + e.getMessage());
+            return -1;
+        }
     }
 
     /**
-     * Called by the simulation when a task result is returned to the orchestrator.
+     * Transmits task execution outcome (completion/failure metrics) back to Python asynchronously.
      *
-     * <p><b>Phase 4.1 stub:</b> no-op.</p>
-     *
-     * <p>TODO (Phase 4.3): fire-and-forget {@code TASK_RESULT} message to Python.</p>
-     *
-     * @param task the completed (or failed) task
+     * @param task the task whose results are being reported
      */
     @Override
     public void resultsReturned(Task task) {
-        // TODO (Phase 4.3): send TASK_RESULT (fire-and-forget, no response expected)
+        if (bridge == null || task == null) {
+            return;
+        }
+
+        int reqId = taskIdToRequestId.getOrDefault(task.getId(), -1);
+        int nodeIndex = taskIdToNodeIndex.getOrDefault(task.getId(), -1);
+        taskIdToRequestId.remove(task.getId());
+        taskIdToNodeIndex.remove(task.getId());
+
+        try {
+            String resultJson = MessageBuilder.buildTaskResult(reqId, task, nodeIndex);
+            bridge.send(resultJson);
+            // Fire-and-forget message, no response expected
+        } catch (IOException e) {
+            simLog.deepLog("Failed to send TASK_RESULT to Python bridge: " + e.getMessage());
+        }
     }
 
-    // -----------------------------------------------------------------------
-    // Lifecycle hooks (wired in Phase 4.3)
-    // -----------------------------------------------------------------------
+    /**
+     * Lifecycle callback invoked at simulation conclusion to perform clean shutdown of socket and Python process.
+     */
+    public void onSimulationEnd() {
+        if (bridge != null) {
+            try {
+                bridge.send(MessageBuilder.buildEpisodeEnd(episodeId, simulationManager));
+                bridge.recv(); // Wait for SHUTDOWN_ACK
+            } catch (Exception e) {
+                simLog.deepLog("Error sending EPISODE_END: " + e.getMessage());
+            }
+        }
+        closeBridge();
+    }
 
     /**
-     * Called by the DES engine at the end of a simulation run.
-     *
-     * <p>TODO (Phase 4.3): send {@code EPISODE_END}, wait for {@code SHUTDOWN_ACK},
-     * then close {@link JavaBridge} and remove socket path from active-sockets set.</p>
+     * Closes socket bridge, destroys Python subprocess if running, and cleans up active socket registry.
      */
-    // @Override
-    // public void onSimulationEnd() {
-    //     TODO (Phase 4.3): implement
-    // }
+    private synchronized void closeBridge() {
+        if (bridge != null) {
+            bridge.close();
+            bridge = null;
+        }
+        if (pythonProcess != null) {
+            pythonProcess.destroy();
+            pythonProcess = null;
+        }
+        if (socketPath != null) {
+            activeSockets.remove(socketPath);
+            socketPath = null;
+        }
+    }
+
+    /**
+     * Helper to obtain JVM process PID in Java 8 compatible manner.
+     *
+     * @return current process PID integer
+     */
+    private static int getPid() {
+        try {
+            String processName = ManagementFactory.getRuntimeMXBean().getName();
+            return Integer.parseInt(processName.split("@")[0]);
+        } catch (Exception e) {
+            return (int) (System.currentTimeMillis() % 10000);
+        }
+    }
 }
