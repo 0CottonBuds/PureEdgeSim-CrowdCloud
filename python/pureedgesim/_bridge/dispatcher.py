@@ -84,6 +84,15 @@ class Dispatcher:
 
     def _handle_episode_init(self, msg: Dict[str, Any]) -> None:
         """Handle EPISODE_INIT message from Java."""
+        PROTOCOL_VERSION = "1.0"
+        received_version = msg.get('protocol_version', '1.0')
+        if received_version != PROTOCOL_VERSION:
+            import warnings
+            warnings.warn(
+                f"Protocol version mismatch: bridge expects {PROTOCOL_VERSION}, "
+                f"Java sent {received_version}. Some fields may be missing."
+            )
+
         self._nodes = build_nodes_from_episode_init(msg)
         episode_id = msg.get('episode_id', 0)
         
@@ -102,12 +111,97 @@ class Dispatcher:
                 self._orch.on_episode_begin(ep_ctx, self._nodes)
             except Exception as e:
                 print(f"[bridge] Error in on_episode_begin: {e}", file=sys.stderr)
+                if self._strict:
+                    raise
 
         self._conn.send(encode({
             'type': 'READY_ACK',
             'episode_id': episode_id,
             'status': 'READY',
         }))
+
+    def _validate_decision(self, result: Any, task: Any, state: Any) -> int:
+        """
+        Validate decision returned by orchestrator's select_node method.
+
+        Returns target node index, or -1 if result is None.
+        Raises InvalidDecisionError if decision is invalid.
+        """
+        import math
+        from pureedgesim.types.decision import PlacementDecision, InvalidDecisionError
+        from pureedgesim.types.node import Node
+
+        if result is None:
+            return -1
+
+        if isinstance(result, PlacementDecision):
+            node = result.node
+            if node is None:
+                return -1
+        elif isinstance(result, Node):
+            node = result
+        elif isinstance(result, int):
+            if result == -1:
+                return -1
+            matching = [n for n in state.nodes if n.index == result]
+            if not matching:
+                raise InvalidDecisionError(
+                    f"Node index {result} is not in the candidate list for this episode.",
+                    task=task
+                )
+            node = matching[0]
+        elif hasattr(result, 'index'):
+            node = result
+        elif hasattr(result, 'node') and getattr(result, 'node') is not None:
+            node = result.node
+        else:
+            raise TypeError(
+                f"select_node() returned {type(result).__name__}, "
+                f"expected Node, PlacementDecision, int, or None"
+            )
+
+        valid_indices = {n.index for n in state.nodes}
+        if node.index not in valid_indices:
+            raise InvalidDecisionError(
+                f"Node (index={node.index}) is not in the candidate list for this episode. "
+                "Did you return a stale reference from a previous episode?",
+                node=node, task=task
+            )
+
+        if not node.is_alive:
+            raise InvalidDecisionError(
+                f"Selected node (index={node.index}) is dead (battery depleted). "
+                "Check node.is_alive before returning.",
+                node=node, task=task
+            )
+
+        if math.isnan(node.available_ram_mb) or math.isnan(task.ram_required_mb):
+            raise InvalidDecisionError(
+                f"Node RAM or task RAM requirement contains NaN.",
+                node=node, task=task
+            )
+
+        if node.available_ram_mb < task.ram_required_mb:
+            raise InvalidDecisionError(
+                f"Node (index={node.index}) has insufficient RAM: "
+                f"needs {task.ram_required_mb:.1f} MB, has {node.available_ram_mb:.1f} MB.",
+                node=node, task=task
+            )
+
+        if math.isnan(node.available_storage_mb) or math.isnan(task.container_size_mb):
+            raise InvalidDecisionError(
+                f"Node storage or task container size contains NaN.",
+                node=node, task=task
+            )
+
+        if node.available_storage_mb < task.container_size_mb:
+            raise InvalidDecisionError(
+                f"Node (index={node.index}) has insufficient storage: "
+                f"needs {task.container_size_mb:.1f} MB, has {node.available_storage_mb:.1f} MB.",
+                node=node, task=task
+            )
+
+        return node.index
 
     def _handle_decision_request(self, msg: Dict[str, Any]) -> None:
         """Handle DECISION_REQUEST message from Java."""
@@ -119,16 +213,14 @@ class Dispatcher:
         if hasattr(self._orch, 'select_node'):
             try:
                 res = self._orch.select_node(task, state)
-                if res is None:
-                    chosen_node_index = -1
-                elif isinstance(res, int):
-                    chosen_node_index = res
-                elif hasattr(res, 'index'):
-                    chosen_node_index = res.index
-                elif hasattr(res, 'node') and res.node is not None:
-                    chosen_node_index = res.node.index
+                chosen_node_index = self._validate_decision(res, task, state)
             except Exception as e:
-                print(f"[bridge] Error in select_node: {e}", file=sys.stderr)
+                if self._strict:
+                    raise
+                else:
+                    import warnings
+                    warnings.warn(f"Invalid decision (lenient mode): {e}")
+                    chosen_node_index = -1
 
         self._conn.send(encode({
             'type': 'DECISION_RESPONSE',

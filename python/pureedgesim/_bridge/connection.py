@@ -93,6 +93,8 @@ class Connection:
         """
         header = self._recv_exactly(4)
         n = struct.unpack('>I', header)[0]
+        if n > 64_000_000:
+            raise ValueError(f"Corrupted framing length header received: {n} bytes exceeds 64MB limit")
         body = self._recv_exactly(n)
         return body.decode('utf-8')
 

@@ -162,6 +162,10 @@ public class JavaBridge {
                     + "Check Python stderr for the traceback.", e);
         }
 
+        if (length < 0 || length > 64_000_000) {
+            throw new IOException("Corrupted payload length header received: " + length + " bytes");
+        }
+
         byte[] buf = new byte[length];
         try {
             in.readFully(buf);
