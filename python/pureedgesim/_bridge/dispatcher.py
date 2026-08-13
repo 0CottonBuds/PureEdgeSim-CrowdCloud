@@ -3,9 +3,17 @@ Event loop and message dispatcher routing protocol requests to Python orchestrat
 """
 
 import sys
-from typing import Any, Dict
+from typing import Any, Dict, List
 from pureedgesim._bridge.connection import Connection
-from pureedgesim._bridge.protocol import decode, encode
+from pureedgesim._bridge.protocol import (
+    decode,
+    encode,
+    build_nodes_from_episode_init,
+    build_state_from_decision_request,
+    build_outcome_from_task_result,
+)
+from pureedgesim.types.episode import EpisodeContext, EpisodeSummary
+from pureedgesim.types.node import Node
 
 
 class Dispatcher:
@@ -13,15 +21,7 @@ class Dispatcher:
     Message dispatcher loop.
 
     Reads framed JSON messages from the Java process over Connection, parses them,
-    and dispatches them to orchestrator lifecycle methods.
-
-    Routing Table:
-        EPISODE_INIT     -> on_episode_begin()  -> send READY_ACK
-        DECISION_REQUEST -> select_node()       -> send DECISION_RESPONSE
-        TASK_RESULT      -> on_task_complete()  -> (no response)
-        EPISODE_END      -> on_episode_end()    -> send SHUTDOWN_ACK
-        SHUTDOWN         -> on_shutdown()       -> break loop
-        HEARTBEAT        -> on_tick()           -> (no response)
+    and dispatches them to orchestrator lifecycle methods using typed data objects.
     """
 
     def __init__(
@@ -44,8 +44,7 @@ class Dispatcher:
         self._orch = orchestrator
         self._strict = strict
         self._heartbeat_interval = heartbeat_interval
-        self._nodes = []
-        self._context = None
+        self._nodes: List[Node] = []
         self._task_cache = {}
 
     def run(self) -> None:
@@ -84,72 +83,81 @@ class Dispatcher:
                 print(f"[bridge] Unknown message type received: '{msg_type}'", file=sys.stderr)
 
     def _handle_episode_init(self, msg: Dict[str, Any]) -> None:
-        """
-        Handle EPISODE_INIT message from Java.
+        """Handle EPISODE_INIT message from Java."""
+        self._nodes = build_nodes_from_episode_init(msg)
+        episode_id = msg.get('episode_id', 0)
+        
+        ep_ctx = EpisodeContext(
+            episode_id=episode_id,
+            algorithm_name=msg.get('algorithm_name', 'PYTHON'),
+            architecture_name=msg.get('architecture_name', 'ALL'),
+            num_devices=len(self._nodes),
+            sim_duration=0.0,
+            num_candidate_nodes=len(self._nodes),
+            nodes=self._nodes,
+        )
 
-        Args:
-            msg: Decoded JSON dictionary for EPISODE_INIT.
-        """
-        # Factory deserialization is hooked up in Phase 4.5.
         if hasattr(self._orch, 'on_episode_begin'):
             try:
-                self._orch.on_episode_begin(msg)
+                self._orch.on_episode_begin(ep_ctx, self._nodes)
             except Exception as e:
                 print(f"[bridge] Error in on_episode_begin: {e}", file=sys.stderr)
 
         self._conn.send(encode({
             'type': 'READY_ACK',
-            'episode_id': msg.get('episode_id', 0),
+            'episode_id': episode_id,
             'status': 'READY',
         }))
 
     def _handle_decision_request(self, msg: Dict[str, Any]) -> None:
-        """
-        Handle DECISION_REQUEST message from Java.
+        """Handle DECISION_REQUEST message from Java."""
+        task, state = build_state_from_decision_request(msg, self._nodes)
+        self._task_cache[task.id] = task
 
-        Args:
-            msg: Decoded JSON dictionary for DECISION_REQUEST.
-        """
-        node_index = 0
+        chosen_node_index = -1
         if hasattr(self._orch, 'select_node'):
             try:
-                res = self._orch.select_node(msg)
-                if isinstance(res, int):
-                    node_index = res
-                elif hasattr(res, 'node_index'):
-                    node_index = res.node_index
+                res = self._orch.select_node(task, state)
+                if res is None:
+                    chosen_node_index = -1
+                elif isinstance(res, int):
+                    chosen_node_index = res
+                elif hasattr(res, 'index'):
+                    chosen_node_index = res.index
+                elif hasattr(res, 'node') and res.node is not None:
+                    chosen_node_index = res.node.index
             except Exception as e:
                 print(f"[bridge] Error in select_node: {e}", file=sys.stderr)
 
         self._conn.send(encode({
             'type': 'DECISION_RESPONSE',
             'request_id': msg.get('request_id', 0),
-            'node_index': node_index,
+            'node_index': chosen_node_index,
         }))
 
     def _handle_task_result(self, msg: Dict[str, Any]) -> None:
-        """
-        Handle TASK_RESULT message from Java (fire-and-forget).
-
-        Args:
-            msg: Decoded JSON dictionary for TASK_RESULT.
-        """
+        """Handle TASK_RESULT message from Java (fire-and-forget)."""
+        outcome = build_outcome_from_task_result(msg, self._task_cache, self._nodes)
         if hasattr(self._orch, 'on_task_complete'):
             try:
-                self._orch.on_task_complete(msg)
+                self._orch.on_task_complete(outcome)
             except Exception as e:
                 print(f"[bridge] Error in on_task_complete: {e}", file=sys.stderr)
 
     def _handle_episode_end(self, msg: Dict[str, Any]) -> None:
-        """
-        Handle EPISODE_END message from Java.
+        """Handle EPISODE_END message from Java."""
+        summary = EpisodeSummary(
+            episode_id=msg.get('episode_id', 0),
+            total_tasks=msg.get('total_tasks', 0),
+            successful_tasks=msg.get('successful_tasks', 0),
+            failed_tasks=msg.get('failed_tasks', 0),
+            cached_tasks=msg.get('cached_tasks', 0),
+            sim_duration=msg.get('sim_duration', 0.0),
+        )
 
-        Args:
-            msg: Decoded JSON dictionary for EPISODE_END.
-        """
         if hasattr(self._orch, 'on_episode_end'):
             try:
-                self._orch.on_episode_end(msg)
+                self._orch.on_episode_end(summary)
             except Exception as e:
                 print(f"[bridge] Error in on_episode_end: {e}", file=sys.stderr)
 
