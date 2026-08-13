@@ -31,10 +31,14 @@ import com.mechalikh.pureedgesim.simulationmanager.Simulation;
  */
 public class ExamplePythonBridgeE2E {
 
-    public ExamplePythonBridgeE2E() {
-        PythonOrchestrator.setOrchestratorClass(
-                "examples.run_round_robin.RoundRobinOrchestrator"
-        );
+    public ExamplePythonBridgeE2E(String orchestratorClass) {
+        if (orchestratorClass != null && !orchestratorClass.trim().isEmpty()) {
+            PythonOrchestrator.setOrchestratorClass(orchestratorClass);
+        } else {
+            PythonOrchestrator.setOrchestratorClass(
+                    "examples.run_round_robin.RoundRobinOrchestrator"
+            );
+        }
 
         Simulation sim = new Simulation();
         sim.setCustomSettingsFolder("PureEdgeSim/settings_bridge_test/");
@@ -43,6 +47,7 @@ public class ExamplePythonBridgeE2E {
     }
 
     public static void main(String[] args) {
-        new ExamplePythonBridgeE2E();
+        String orch = (args != null && args.length > 0) ? args[0] : null;
+        new ExamplePythonBridgeE2E(orch);
     }
 }
