@@ -24,3 +24,14 @@ ehthumbs.db
 Desktop.ini
 
 python/.venv
+
+# Google Cluster Trace data files (large — not committed to git)
+data/raw/
+data/processed/
+data/**/*.parquet
+data/**/*.jsonl
+data/**/*_tmp.*
+
+# Keep metadata manifests and logs tracked
+!data/metadata/
+!docs/logs/
