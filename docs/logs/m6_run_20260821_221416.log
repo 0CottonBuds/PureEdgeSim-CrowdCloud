@@ -1,0 +1,186 @@
+[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for com.mechalikh:pureedgesim:jar:5.3.0
+[WARNING] 'dependencies.dependency.systemPath' for net.sourceforge.jFuzzyLogic:jFuzzyLogic:jar should not point at files within the project directory, ${project.basedir}/PureEdgeSim/libs/jFuzzyLogic_v3.0.jar will be unresolvable by dependent projects @ line 416, column 16
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] 
+[INFO] ---------------------< com.mechalikh:pureedgesim >----------------------
+[INFO] Building PureEdgeSim 5.3.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- exec:3.1.0:exec (default-cli) @ pureedgesim ---
+[ExampleTraceE2E] Python orchestrator: examples.run_trace_round_robin.TraceRoundRobinOrchestrator
+TraceSimulation - Loading simulation files...
+EdgeDevicesParser - Checking file: PureEdgeSim/settings_trace_test/edge_devices.xml 
+EdgeDevicesParser - PureEdgeSim/settings_trace_test/edge_devices.xml file successfully Loaded!
+DatacentersParser - Checking file: PureEdgeSim/settings_trace_test/edge_datacenters.xml 
+DatacentersParser - PureEdgeSim/settings_trace_test/edge_datacenters.xml file successfully Loaded!
+DatacentersParser - Checking file: PureEdgeSim/settings_trace_test/cloud.xml 
+DatacentersParser - PureEdgeSim/settings_trace_test/cloud.xml file successfully Loaded!
+ParametersParser - Checking simulation properties file...
+ParametersParser - Properties file successfully Loaded propoerties file!
+ApplicationFileParser - Checking applications file.
+ApplicationFileParser - Applications XML file successfully loaded!
+TraceSimulationThread - Initializing the Network Module...
+TraceSimulationThread - Initializing the Datacenters Manager Module...
+DataCentersManager - Generating computing nodes...
+DefaultComputingNodesGenerator- Edge device:0    location: ( 145.0,181.0 )DefaultComputingNodesGenerator- Edge device:1    location: ( 12.0,166.0 )DefaultComputingNodesGenerator- Edge device:2    location: ( 14.0,107.0 )DefaultComputingNodesGenerator- Edge device:3    location: ( 52.0,102.0 )DefaultComputingNodesGenerator- Edge device:4    location: ( 101.0,80.0 )DefaultComputingNodesGenerator- Edge device:5    location: ( 117.0,49.0 )DefaultComputingNodesGenerator- Edge device:6    location: ( 11.0,176.0 )DefaultComputingNodesGenerator- Edge device:7    location: ( 195.0,140.0 )DefaultComputingNodesGenerator- Edge device:8    location: ( 141.0,34.0 )DefaultComputingNodesGenerator- Edge device:9    location: ( 86.0,6.0 )DataCentersManager - Creating the network topology...
+TraceSimulationThread - Initializing the Streaming Task Generator...
+Aug 21, 2026 10:14:20 PM com.mechalikh.pureedgesim.taskgenerator.StreamedTraceTaskGenerator generate
+INFO: [StreamedTraceTaskGenerator] Opening trace: data/processed/pureedgesim_tasks_15min.json  (buffer=1000, lowWatermark=200)
+Aug 21, 2026 10:14:20 PM com.mechalikh.pureedgesim.taskgenerator.StreamedTraceTaskGenerator generate
+INFO: [StreamedTraceTaskGenerator] Initial buffer loaded: 1000 tasks (trace exhausted=false)
+TraceSimulationThread - StreamedTraceTaskGenerator wired into TraceSimulationManager.
+TraceSimulationThread - Trace: data/processed/pureedgesim_tasks_15min.json  buffer=1000  lowWatermark=200
+TraceSimulationThread - Initializing the Task Orchestrator...
+TraceSimulationThread - All modules were successfully launched...
+Simulation progress : [ 0 0.077407: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1 assigned to CLOUD Computing Node: 00.109441: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 2 assigned to CLOUD Computing Node: 00.217337: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5 assigned to CLOUD Computing Node: 00.250259: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6 assigned to CLOUD Computing Node: 00.44331: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 7 assigned to CLOUD Computing Node: 00.978413: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 11 assigned to CLOUD Computing Node: 01.068202: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 16 assigned to CLOUD Computing Node: 01.709215: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 43 assigned to CLOUD Computing Node: 01.804009: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 45 assigned to CLOUD Computing Node: 023.964336: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 161 assigned to CLOUD Computing Node: 054.508573: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 381 assigned to CLOUD Computing Node: 071.297337: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 537 assigned to CLOUD Computing Node: 097.552958: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 728 assigned to CLOUD Computing Node: 0TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=1900)107.865098: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 805 assigned to CLOUD Computing Node: 0109.152902: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 812 assigned to CLOUD Computing Node: 0125.399046: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 897 assigned to CLOUD Computing Node: 0131.864303: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 941 assigned to CLOUD Computing Node: 0147.13261: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1076 assigned to CLOUD Computing Node: 0170.584134: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1216 assigned to CLOUD Computing Node: 0187.002318: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1309 assigned to CLOUD Computing Node: 0187.002342: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1315 assigned to CLOUD Computing Node: 0TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=2800)225.628218: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1746 assigned to CLOUD Computing Node: 0276.992278: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 2268 assigned to CLOUD Computing Node: 0TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=3700)300.394554: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 2722 assigned to CLOUD Computing Node: 0312.906835: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 2832 assigned to CLOUD Computing Node: 0392.869722: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3457 assigned to CLOUD Computing Node: 0TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=4600)417.761475: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3584 assigned to CLOUD Computing Node: 0420.687678: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3638 assigned to CLOUD Computing Node: 0436.605681: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3718 assigned to CLOUD Computing Node: 0451.096651: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3782 assigned to CLOUD Computing Node: 0451.096715: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3796 assigned to CLOUD Computing Node: 0474.436736: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4082 assigned to CLOUD Computing Node: 0477.745911: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4100 assigned to CLOUD Computing Node: 0TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=5500)569.882861: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4700 assigned to CLOUD Computing Node: 0577.110644: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4720 assigned to CLOUD Computing Node: 0590.757986: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4772 assigned to CLOUD Computing Node: 0#600.095397: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4807 assigned to CLOUD Computing Node: 0616.494765: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5051 assigned to CLOUD Computing Node: 0657.170527: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5251 assigned to CLOUD Computing Node: 0660.348228: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5265 assigned to CLOUD Computing Node: 0Aug 21, 2026 10:14:21 PM com.mechalikh.pureedgesim.taskgenerator.StreamedTraceTaskGenerator readNextChunk
+INFO: [StreamedTraceTaskGenerator] Trace fully consumed. Total loaded=6258, skipped=0
+TraceSimulationManager - Refilled 758 tasks from trace (buffer now=858, total loaded=6258)665.519576: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5310 assigned to CLOUD Computing Node: 0719.303281: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5537 assigned to CLOUD Computing Node: 0747.625456: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5667 assigned to CLOUD Computing Node: 0808.766363: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6000 assigned to CLOUD Computing Node: 0839.67768: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6126 assigned to CLOUD Computing Node: 0843.830189: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6137 assigned to CLOUD Computing Node: 0845.767105: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6152 assigned to CLOUD Computing Node: 0860.036386: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6188 assigned to CLOUD Computing Node: 0# 10 ### 30 # 40 ### 50 ### 60 ### 70 #### 80 ##### 90 ######## 110 #### 120 #### 130 #### 140 #### 150 ###### 160 ##### 170 ##### 180 ###### 190 ###### 200 ## 100% ]
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:0    location: ( 145.0,181.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:1    location: ( 12.0,166.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:2    location: ( 14.0,107.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:3    location: ( 52.0,102.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:4    location: ( 101.0,80.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:5    location: ( 117.0,49.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:6    location: ( 11.0,176.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:7    location: ( 195.0,140.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator - Wrong percentages values (the sum is inferior than 100%), check edge_devices.xml file !
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:8    location: ( 141.0,34.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator- Edge device:9    location: ( 86.0,6.0 )
+2026/08/21 22:14:20 - simulation time       0 (s) : DefaultComputingNodesGenerator - Datacenters and devices were generated
+2026/08/21 22:14:20 - simulation time       0 (s) : TraceSimulationManager -  Orchestration algorithm= ROUND_ROBIN -  Architecture= CLOUD_ONLY -  number of edge devices= 10
+2026/08/21 22:14:20 - simulation time       0 (s) : TraceSimulationManager - Simulation: 1  , iteration: 1
+2026/08/21 22:14:21 - simulation time  0.0774 (s) : 0.077407: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time  0.1094 (s) : 0.109441: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 2 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time  0.2173 (s) : 0.217337: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time  0.2503 (s) : 0.250259: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time  0.4433 (s) : 0.44331: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 7 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time  0.9784 (s) : 0.978413: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 11 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time  1.0682 (s) : 1.068202: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 16 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time  1.7092 (s) : 1.709215: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 43 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time   1.804 (s) : 1.804009: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 45 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 23.9643 (s) : 23.964336: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 161 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 54.5086 (s) : 54.508573: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 381 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 71.2973 (s) : 71.297337: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 537 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time  97.553 (s) : 97.552958: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 728 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 107.7265 (s) : TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=1900)
+2026/08/21 22:14:21 - simulation time 107.8651 (s) : 107.865098: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 805 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 109.1529 (s) : 109.152902: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 812 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 125.399 (s) : 125.399046: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 897 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 131.8643 (s) : 131.864303: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 941 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 147.1326 (s) : 147.13261: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1076 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 170.5841 (s) : 170.584134: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1216 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 187.0023 (s) : 187.002318: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1309 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 187.0023 (s) : 187.002342: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1315 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 218.6736 (s) : TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=2800)
+2026/08/21 22:14:21 - simulation time 225.6282 (s) : 225.628218: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 1746 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 276.9923 (s) : 276.992278: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 2268 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 286.8636 (s) : TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=3700)
+2026/08/21 22:14:21 - simulation time 300.3946 (s) : 300.394554: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 2722 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 312.9068 (s) : 312.906835: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 2832 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 392.8697 (s) : 392.869722: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3457 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 397.2277 (s) : TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=4600)
+2026/08/21 22:14:21 - simulation time 417.7615 (s) : 417.761475: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3584 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 420.6877 (s) : 420.687678: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3638 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 436.6057 (s) : 436.605681: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3718 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 451.0967 (s) : 451.096651: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3782 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 451.0967 (s) : 451.096715: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 3796 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 474.4367 (s) : 474.436736: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4082 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 477.7459 (s) : 477.745911: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4100 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 534.2463 (s) : TraceSimulationManager - Refilled 900 tasks from trace (buffer now=1000, total loaded=5500)
+2026/08/21 22:14:21 - simulation time 569.8829 (s) : 569.882861: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4700 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 577.1106 (s) : 577.110644: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4720 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 590.758 (s) : 590.757986: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4772 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 600.0954 (s) : 600.095397: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 4807 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 616.4948 (s) : 616.494765: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5051 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 657.1705 (s) : 657.170527: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5251 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 660.3482 (s) : 660.348228: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5265 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 662.2782 (s) : TraceSimulationManager - Refilled 758 tasks from trace (buffer now=858, total loaded=6258)
+2026/08/21 22:14:21 - simulation time 665.5196 (s) : 665.519576: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5310 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 692.0656 (s) : TraceSimulationManager - Trace fully consumed. Total tasks loaded=6258, skipped=0
+2026/08/21 22:14:21 - simulation time 719.3033 (s) : 719.303281: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5537 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:21 - simulation time 747.6255 (s) : 747.625456: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 5667 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:22 - simulation time 808.7664 (s) : 808.766363: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6000 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:22 - simulation time 839.6777 (s) : 839.67768: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6126 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:22 - simulation time 843.8302 (s) : 843.830189: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6137 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:22 - simulation time 845.7671 (s) : 845.767105: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6152 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:22 - simulation time 860.0364 (s) : 860.036386: class com.mechalikh.pureedgesim.python.PythonOrchestrator Task: 6188 assigned to CLOUD Computing Node: 0
+2026/08/21 22:14:35 - simulation time   60000 (s) : SimLog - Printing iteration output...
+2026/08/21 22:14:35 - simulation time   60000 (s) : ------------------------------------------------------- OUTPUT -------------------------------------------------------
+2026/08/21 22:14:35 - simulation time   60000 (s) : 
+2026/08/21 22:14:35 - simulation time   60000 (s) : Tasks not sent because device died (low energy)                         :                   0 % (0 tasks)
+2026/08/21 22:14:35 - simulation time   60000 (s) : Tasks sent from edge devices                                            :               625.8 % (6258 among 1000 generated tasks)
+2026/08/21 22:14:35 - simulation time   60000 (s) : -------------------------------------All values below are based on the sent tasks-------------------------------------
+2026/08/21 22:14:35 - simulation time   60000 (s) : Total tasks execution time                                              :            156.2654 seconds
+2026/08/21 22:14:35 - simulation time   60000 (s) : Average task execution time                                             :              0.0762 seconds
+2026/08/21 22:14:35 - simulation time   60000 (s) : Total waiting time (from submitting the tasks to when execution started):                   0 seconds
+2026/08/21 22:14:35 - simulation time   60000 (s) : Average task waiting time                                               :                   0 seconds
+2026/08/21 22:14:35 - simulation time   60000 (s) : Tasks successfully executed                                             :             67.6254 % (4232 among 6258 sent tasks)
+2026/08/21 22:14:35 - simulation time   60000 (s) : Tasks failures
+2026/08/21 22:14:35 - simulation time   60000 (s) :                               Not executed due to resource unavailablity:                   0 % (0 tasks)
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                    Executed but failed due to high delay:             32.3746 % (2026 tasks from 6258 successfully sent tasks)
+2026/08/21 22:14:35 - simulation time   60000 (s) :                Tasks execution results not returned due to devices death:                   0 % (0 tasks)
+2026/08/21 22:14:35 - simulation time   60000 (s) :             Tasks execution results not returned due to devices mobility:                   0 % (0 tasks)
+2026/08/21 22:14:35 - simulation time   60000 (s) : Tasks executed on each level                                            :Cloud=          6258 tasks (where 4232 were successfully executed )
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                           Edge=             0 tasks (where 0 were successfully executed )
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                           Mist=             0 tasks (where 0 were successfully executed )
+2026/08/21 22:14:35 - simulation time   60000 (s) : Network usage                                                           :          16225239.6 seconds (The total traffic: 62618.9171 (MBytes) )
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                            Wan=    16225239.6 seconds (100 % of total usage, WAN used when downloading containers=0 % of WAN usage )
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                            Man=             0 seconds (0 % of total usage, MAN used when downloading containers=0 % of MAN usage )
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                            Lan=             0 seconds (0 % of total usage, LAN used when downloading containers=NaN % of LAN usage )
+2026/08/21 22:14:35 - simulation time   60000 (s) : Average transfer speed                                                  :              9.9274 Mbps  
+2026/08/21 22:14:35 - simulation time   60000 (s) : Average CPU utilization                                                 :              0.0003 %
+2026/08/21 22:14:35 - simulation time   60000 (s) : Average CPU utilization per level                                       :Cloud=        0.0013 %
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                           Edge=             0 %
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                           Mist=             0 %
+2026/08/21 22:14:35 - simulation time   60000 (s) : Energy consumption                                                      :            1831.042 Wh (Average: 152.5868 Wh/data center(or device))
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                         :                        (Average: 0.8928 Wh/task)
+2026/08/21 22:14:35 - simulation time   60000 (s) : Energy Consumption per level                                            :Cloud=        1.2536 Wh (Average: 1.2536 Wh/data center)
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                           Edge=     1666.6722 Wh (Average: 1666.6722 Wh/data center)
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                           Mist=      163.1162 Wh (Average: 16.3116 Wh/edge device)
+2026/08/21 22:14:35 - simulation time   60000 (s) : Energy Consumption per network                                          :  WAN=      671.2833 Wh
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                            MAN=             0 Wh 
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                            LAN=             0 Wh 
+2026/08/21 22:14:35 - simulation time   60000 (s) : Energy Consumption per technology                                       : WiFi=      671.2833 Wh
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                       Cellular=             0 Wh 
+2026/08/21 22:14:35 - simulation time   60000 (s) :                                                                       Ethernet=             0 Wh 
+2026/08/21 22:14:35 - simulation time   60000 (s) : Dead edge devices due to battery drain                                  :                   0 devices (Among 2 devices with batteries (0 %))
+2026/08/21 22:14:35 - simulation time   60000 (s) : Average remaining power (devices with batteries that are still alive)   :              17.171 Wh (Average: 43.7548 %)
+#
+[M6_EPISODE_SUMMARY episode_id=1]
+  tasks_dispatched=48
+  tasks_completed=2051
+  tasks_success=25
+  tasks_failed=2026
+  deadline_violations=21
+  success_rate=0.5208
+  deadline_violation_rate=0.8400
+  ipc_timeouts=0
+  avg_decision_latency_ms=0.026
+  p95_decision_latency_ms=0.033
+  throughput_tasks_per_sec=3.2
+  cumulative_reward=-632135808.17
+  wall_time_s=14.9
+  finish_status_breakdown={'KILL': 24, 'LOST': 8, 'EVICT': 4, 'FAIL': 7, 'FINISH': 5}
+[M6_EPISODE_SUMMARY_END]
+.
+
+TraceSimulationThread - Iteration finished...
+
+######################################################################################################################################################################
+TraceSimulationThread - Simulation Finished!
+TraceSimulationThread - Saving charts...
+TraceSimulation - Simulation took : 0 minutes, 24 seconds.
+TraceSimulation - results were saved to the folder: PureEdgeSim/output/
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  25.554 s
+[INFO] Finished at: 2026-08-21T22:14:45+08:00
+[INFO] ------------------------------------------------------------------------

@@ -200,7 +200,12 @@ fi
 echo ""
 echo "[Step 3] Converting JSON Lines → Parquet (${OUTPUT_PARQUET})..."
 
-python3 - <<PYTHON_EOF
+PYTHON_EXEC="${PROJECT_ROOT}/python/.venv/bin/python"
+if [[ ! -x "${PYTHON_EXEC}" ]]; then
+  PYTHON_EXEC="python3"
+fi
+
+"${PYTHON_EXEC}" - <<PYTHON_EOF
 import json
 import sys
 import pandas as pd
@@ -267,7 +272,7 @@ echo ""
 echo "[Step 4] Computing SHA-256 checksum..."
 SHA256=$(sha256sum "${OUTPUT_PARQUET}" | awk '{print $1}')
 FILE_SIZE=$(du -sh "${OUTPUT_PARQUET}" | awk '{print $1}')
-FINAL_ROW_COUNT=$(python3 -c "import pandas as pd; df=pd.read_parquet('${OUTPUT_PARQUET}'); print(len(df))" 2>/dev/null || echo "${ROW_COUNT}")
+FINAL_ROW_COUNT=$("${PYTHON_EXEC}" -c "import pandas as pd; df=pd.read_parquet('${OUTPUT_PARQUET}'); print(len(df))" 2>/dev/null || echo "${ROW_COUNT}")
 echo "[INFO] SHA-256: ${SHA256}"
 echo "[INFO] File size: ${FILE_SIZE}"
 echo "[INFO] Final row count (post-filter): ${FINAL_ROW_COUNT}"

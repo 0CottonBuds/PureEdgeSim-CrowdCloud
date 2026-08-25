@@ -1,0 +1,44 @@
+
+## M3 Preprocessing Run — 2026-08-21T15:22:55Z
+
+**Input**: `data/raw/google_v3_cell_a_15min.parquet`  
+**Output**: `data/processed/google_v3_cell_a_15min_intermediate.jsonl`  
+**Window start**: `600,000,000 µs` (= 600.0 s)  
+**Overall result**: ✅ M3 PASSED
+
+### Record Count Invariant
+
+| Stage | Count |
+|---|---|
+| Raw Parquet rows | 6,258 |
+| After t_arrival filter | 6,258 |
+| Written to JSONL | 6,258 |
+| Dropped (t_arrival < 0) | 0 |
+
+### Timing Field Summary (seconds)
+
+| Field | Min | P25 | P50 | P90 | P99 | Max |
+|---|---|---|---|---|---|---|
+| t_arrival | 0.077 | 216.551 | 348.877 | 741.337 | 860.481 | 899.286 |
+| delta_t_exec | 0.000008 | 24.536 | 53.070 | 269.246 | 574.499 | 847.468 |
+| delta_t_queue | -847.468 | 0.094 | 0.191 | 3.196 | 109.340 | 305.069 |
+
+### Formulas Applied
+
+```
+t_arrival    = (submit_time_us - 600,000,000) / 1_000_000   [seconds]
+delta_t_exec = exec_time_us / 1_000_000                              [seconds]
+delta_t_queue = queue_time_us / 1_000_000                            [seconds, may be negative]
+```
+
+### Finish Status Distribution (sorted)
+
+| Status | Count | % |
+|---|---|---|
+| KILL | 3,309 | 52.9% |
+| LOST | 992 | 15.9% |
+| FINISH | 982 | 15.7% |
+| EVICT | 711 | 11.4% |
+| FAIL | 264 | 4.2% |
+
+---

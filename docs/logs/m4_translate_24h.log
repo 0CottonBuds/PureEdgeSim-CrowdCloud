@@ -1,0 +1,68 @@
+
+## M4 Translation Run — 2026-08-25T15:08:48Z
+
+**Input**: `data/processed/google_v3_cell_a_24h_intermediate.jsonl`  
+**Output**: `data/processed/pureedgesim_tasks_24h.json`  
+**Overall result**: ✅ M4 PASSED
+
+### Parameters
+
+| Parameter | Value |
+|---|---|
+| MIPS_base | 2000 MIPS |
+| MaxCellRAM | 64.0 GB |
+| N_edge_devices | 10 |
+| RNG seed | 42 |
+| α_input (fileSizeInBits ratio) | 0.25 |
+| LogNormal(μ, σ) | (0.0, 0.5) |
+| Uniform(β_min, β_max) | (0.05, 0.2) |
+| SlackFactor κ, λ | 0.5, 0.5 |
+
+### Validation Checklist
+
+| Result | Check |
+|---|---|
+| ✅ PASS | length > 0 for all tasks |
+| ✅ PASS | containerSizeInBits > 0 for all |
+| ✅ PASS | maxLatency >= delta_t_exec for all |
+| ✅ PASS | Record count invariant (N_out==N_in) |
+| ✅ PASS | edgeDevice in [0, N_edge-1] |
+
+### Translation Formulas
+
+```
+length_mi        = round(req_cpus × 2000 × delta_t_exec)
+containerBits    = round(req_memory × 68,719,476,736 × 8)
+fileSizeInBits   = round(containerBits × 0.25 × LogNormal(μ=0.0, σ=0.5))
+outputSizeInBits = round(fileSizeInBits × Uniform(0.05, 0.2))
+SlackFactor      = 0.5(3 - Sc) + 0.5(1 - P / 450)
+maxLatency       = delta_t_exec × (1.0 + SlackFactor)
+edgeDevice       = |hashCode(user)| mod 10
+```
+
+### Output Field Quantiles
+
+| Field | P1 | P25 | P50 | P75 | P90 | P99 |
+|---|---|---|---|---|---|---|
+| length_mi [MI] | 1.0 | 1931.0 | 8747.0 | 30320.0 | 129172.2 | 922117.7 |
+| containerSize [MB] | 18.500 | 151.750 | 335.500 | 555.000 | 1194.000 | 4840.000 |
+| fileSize [MB] | 5.010 | 38.274 | 77.514 | 162.882 | 347.024 | 1330.796 |
+| maxLatency [s] | 0.001 | 217.344 | 1044.188 | 2666.471 | 9304.030 | 90759.225 |
+| slackFactor | 0.278 | 1.278 | 1.368 | 1.871 | 1.883 | 2.000 |
+
+### Edge Device Assignment Distribution
+
+| Device Index | Task Count | % |
+|---|---|---|
+| 0 | 596,896 | 44.7% |
+| 1 | 57,911 | 4.3% |
+| 2 | 76,839 | 5.8% |
+| 3 | 18,491 | 1.4% |
+| 4 | 135,415 | 10.1% |
+| 5 | 46,536 | 3.5% |
+| 6 | 14,402 | 1.1% |
+| 7 | 65,660 | 4.9% |
+| 8 | 278,257 | 20.8% |
+| 9 | 45,342 | 3.4% |
+
+---

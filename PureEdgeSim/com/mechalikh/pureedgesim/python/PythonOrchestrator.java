@@ -20,6 +20,7 @@ package com.mechalikh.pureedgesim.python;
 
 import com.mechalikh.pureedgesim.datacentersmanager.ComputingNode;
 import com.mechalikh.pureedgesim.simulationengine.Event;
+import com.mechalikh.pureedgesim.simulationengine.OnSimulationEndListener;
 import com.mechalikh.pureedgesim.simulationmanager.SimulationManager;
 import com.mechalikh.pureedgesim.taskgenerator.Task;
 import com.mechalikh.pureedgesim.taskorchestrator.Orchestrator;
@@ -67,7 +68,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @see MessageBuilder
  * @see MessageParser
  */
-public class PythonOrchestrator extends Orchestrator {
+public class PythonOrchestrator extends Orchestrator implements OnSimulationEndListener {
 
     /** Fully-qualified Python module and class name to instantiate as the orchestrator. */
     private static volatile String pythonOrchestratorClass =
