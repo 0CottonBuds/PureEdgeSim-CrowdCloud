@@ -40,7 +40,7 @@ To resolve this bottleneck, this study implements a **single-pass SQL lifecycle 
 * **Placement Start Time ($t_{	ext{schedule}}$)** is captured from the minimum timestamp where `type = 3` (SCHEDULE).
 * **Termination Time ($t_{	ext{finish}}$)** is captured from the maximum timestamp where `type = 6` (FINISH) or other terminal states (FAIL=5, KILL=7, EVICT=4).
 * **Active Execution Duration ($\Delta T_{	ext{exec}}$)** is calculated directly within the query as:
-  $$\Delta T_{	ext{exec}} = rac{t_{	ext{finish}} - t_{	ext{schedule}}}{1,000,000} \quad (	ext{seconds})$$
+  $$\Delta T_{	ext{exec}} = \rac{t_{	ext{finish}} - t_{	ext{schedule}}}{1,000,000} \quad (	ext{seconds})$$
 
 This SQL-level aggregation reduces the raw dataset size by **$3	imes$ to $5	imes$**, outputting a highly dense local Parquet dataset (`google_v3_cell_a_24h.parquet`) comprising **18 essential fields**, including requested CPU rates, requested memory, user hashes, priority tiers, and scheduling classes.
 
@@ -54,31 +54,38 @@ $$t_{	ext{arrival}} = rac{t_{	ext{SUBMIT}} - t_{	ext{window\_start}}}{1,000,000
 *Justification*: Converts microseconds to simulation-relative seconds, preserving the exact empirical inter-arrival intervals ($\Delta t$), diurnal workload peaks, and temporal burstiness.
 
 ##### II. Computational Workload Length ($	ext{Length}_{	ext{MI}}$)
-$$	ext{Length}_{	ext{MI}} = 	ext{round}\left( 	ext{req\_cpus} 	imes 	ext{MIPS}_{	ext{base\_core}} 	imes \Delta T_{	ext{exec}} ight)$$
+$$	ext{Length}_{	ext{MI}} = 	ext{round}\left( 	ext{req\_cpus} 	imes 	ext{MIPS}_{	ext{base\_core}} 	imes \Delta T_{	ext{exec}} 
+ight)$$
 *Justification*: PureEdgeSim calculates execution duration on a host core as $T = rac{	ext{Length}_{	ext{MI}}}{	ext{Host MIPS}}$. By setting $	ext{Length}_{	ext{MI}}$ proportional to the normalized requested CPU rate ($	ext{req\_cpus}$), the base CPU speed ($	ext{MIPS}_{	ext{base\_core}}$, e.g., $2000 	ext{ MIPS}$), and the empirical duration ($\Delta T_{	ext{exec}}$), we guarantee that execution on an un-contended baseline host matches the real-world duration exactly.
 
 ##### III. Container Image & RAM Footprint ($	ext{containerSizeInBits}$)
-$$	ext{containerSizeInBits} = 	ext{round}\left( 	ext{req\_memory} 	imes 	ext{MaxCellRAM}_{	ext{Bytes}} 	imes 8 ight)$$
+$$	ext{containerSizeInBits} = 	ext{round}\left( 	ext{req\_memory} 	imes 	ext{MaxCellRAM}_{	ext{Bytes}} 	imes 8 
+ight)$$
 *Justification*: Unscales the normalized RAM fraction back into physical bits to feed PureEdgeSim's memory allocation and cold-start container transfer physics.
 
 #### 3. Domain-Sound Modeling of Missing Fields
 Borg traces omit network transfer volumes, latency deadlines, and spatial client locations. To resolve this information gap, the pipeline applies four defensible, domain-established synthetic models:
 
 ##### I. Input Network Payload Size ($	ext{fileSizeInBits}$)
-$$	ext{fileSizeInBits} = 	ext{round}\left( 	ext{containerSizeInBits} 	imes 0.25 	imes X ight), \quad X \sim 	ext{LogNormal}(\mu = 0, \sigma = 0.5)$$
+$$	ext{fileSizeInBits} = 	ext{round}\left( 	ext{containerSizeInBits} 	imes 0.25 	imes X 
+ight), \quad X \sim 	ext{LogNormal}(\mu = 0, \sigma = 0.5)$$
 *Justification*: Task input sizes (datasets + binaries) correlate with memory limits. A Log-Normal distribution captures the characteristic heavy-tailed volume of distributed data-processing networks.
 
 ##### II. Output Result Payload Size ($	ext{outputSizeInBits}$)
-$$	ext{outputSizeInBits} = 	ext{round}\left( 	ext{fileSizeInBits} 	imes Y ight), \quad Y \sim 	ext{Uniform}(0.05, 0.20)$$
+$$	ext{outputSizeInBits} = 	ext{round}\left( 	ext{fileSizeInBits} 	imes Y 
+ight), \quad Y \sim 	ext{Uniform}(0.05, 0.20)$$
 *Justification*: Task execution results (e.g., classification labels, summaries) returned to edge devices are structurally much smaller than the input code/dataset.
 
 ##### III. Latency Deadline ($	ext{maxLatency}$)
-$$	ext{maxLatency} = \Delta T_{	ext{exec}} 	imes \left(1.0 + 	ext{SlackFactor}(S_c, P)ight)$$
-$$	ext{SlackFactor}(S_c, P) = 0.5 \cdot (3 - S_c) + 0.5 \cdot \left(1.0 - rac{P}{450}ight)$$
+$$	ext{maxLatency} = \Delta T_{	ext{exec}} 	imes \left(1.0 + 	ext{SlackFactor}(S_c, P)
+ight)$$
+$$	ext{SlackFactor}(S_c, P) = 0.5 \cdot (3 - S_c) + 0.5 \cdot \left(1.0 - rac{P}{450}
+ight)$$
 *Justification*: Models Service Level Objectives (SLOs). A latency-sensitive production task ($S_c = 3, P = 450$) has $	ext{SlackFactor} = 0.0$, producing a strict deadline ($	ext{maxLatency} = 1.0 	imes \Delta T_{	ext{exec}}$). A non-production batch task ($S_c = 0, P = 0$) has $	ext{SlackFactor} = 2.0$, granting a relaxed deadline ($	ext{maxLatency} = 3.0 	imes \Delta T_{	ext{exec}}$).
 
 ##### IV. Origin Edge Device Assignment ($	ext{DeviceIndex}$)
-$$	ext{DeviceIndex} = \left| 	ext{hashCode}(	ext{user}) ight| \pmod{N_{	ext{edge\_devices}}}$$
+$$	ext{DeviceIndex} = \left| 	ext{hashCode}(	ext{user}) 
+ight| \pmod{N_{	ext{edge\_devices}}}$$
 *Justification*: By hashing the obfuscated user string, tasks from the same engineer or service consistently originate from the same physical edge node, preserving spatial locality.
 
 #### 4. Strict 4-Part Data Classification
@@ -248,7 +255,8 @@ To resolve this limitation, this study formulates the scheduling problem as an *
 
 #### 2. Deep Q-Network State Space Representation
 At each decision epoch, the DQN agent receives a highly descriptive observation of the simulation environment. This observation is vectorized into a single, flat 1D NumPy float32 array via the PyTorch-compatible `state_to_array()` module. The shape of the state vector is defined as:
-$$	ext{State Vector Shape} = \left(3 + N_{	ext{nodes}} 	imes 9 + 	ext{max\_pending} 	imes 10ight)$$
+$$	ext{State Vector Shape} = \left(3 + N_{	ext{nodes}} 	imes 9 + 	ext{max\_pending} 	imes 10
+ight)$$
 which comprises three distinct sub-components:
 * **Global Snapshot (3 features)**: `[clock_time, tasks_in_flight, wan_uplink_utilization_fraction]`.
 * **Dynamic Node Array ($N_{	ext{nodes}} 	imes 9$ features)**: For each candidate target node $i$, the dynamic feature vector is defined as:
@@ -273,7 +281,8 @@ Where:
 * $\mathcal{R}_{	ext{latency}} = -rac{T_{	ext{total}}}{	ext{maxLatency}}$ penalizes execution latency.
 * $\mathcal{R}_{	ext{deadline}}$ is $+1.0$ if $T_{	ext{total}} \le 	ext{maxLatency}$, and $-1.0$ on a deadline miss.
 * **Priority-Scaled Penalty**: If a task fails, we scale the penalty based on Borg's raw task priority metadata ($P \in [0, 450]$):
-  $$	ext{Penalty}_{	ext{final}} = \mathcal{R}_{	ext{step}} 	imes \left(1.0 + 9.0 \cdot \mathbb{I}(P \ge 120)ight)$$
+  $$	ext{Penalty}_{	ext{final}} = \mathcal{R}_{	ext{step}} 	imes \left(1.0 + 9.0 \cdot \mathbb{I}(P \ge 120)
+ight)$$
   This scales the failure penalty by $10	imes$ for production-tier tasks ($P \ge 120$), forcing PyTorch gradients to prioritize production workloads over non-critical batch jobs.
 
 #### 5. DQN Neural Network Architecture and Training Loop
@@ -342,11 +351,14 @@ The results confirm that the socket bridge overhead is imperceptible under real-
 #### 3. The 6-Stage Statistical Validation Suite
 To mathematically prove to the thesis committee that our replayed trace-driven workload matches Google's raw cluster distributions, the system executes six formal validation protocols:
 * **Test 1: Arrival Process Temporal Fidelity**: We extract inter-arrival times (IAT) $\Delta t_i = t_{i+1} - t_i$ of tasks inside PureEdgeSim and perform a non-parametric **Two-Sample Kolmogorov-Smirnov (K-S) Test** against the raw BigQuery trace IAT:
-  $$D_{	ext{KS}} = \sup_{\Delta t} \left| F_{	ext{trace}}(\Delta t) - F_{	ext{sim}}(\Delta t) ight|$$
+  $$D_{	ext{KS}} = \sup_{\Delta t} \left| F_{	ext{trace}}(\Delta t) - F_{	ext{sim}}(\Delta t) 
+ight|$$
   *Success Criteria*: $D_{	ext{KS}} < 0.01$ and $p	ext{-value} > 0.05$ (proving temporal burstiness and scheduling spikes are preserved without distortion).
 * **Test 2: Resource Demand Conservation**: We calculate the integrals of total requested CPU work (NCU-seconds) and RAM footprint (GB-seconds) to verify conservation:
-  $$\epsilon_{	ext{cpu}} = rac{\left| W_{	ext{sim\_cpu}} - W_{	ext{trace\_cpu}} ight|}{W_{	ext{trace\_cpu}}} < 1.0\%$$
-  $$\epsilon_{	ext{ram}} = rac{\left| M_{	ext{sim\_ram}} - M_{	ext{trace\_ram}} ight|}{M_{	ext{trace\_ram}}} < 1.0\%$$
+  $$\epsilon_{	ext{cpu}} = rac{\left| W_{	ext{sim\_cpu}} - W_{	ext{trace\_cpu}} 
+ight|}{W_{	ext{trace\_cpu}}} < 1.0\%$$
+  $$\epsilon_{	ext{ram}} = rac{\left| M_{	ext{sim\_ram}} - M_{	ext{trace\_ram}} 
+ight|}{M_{	ext{trace\_ram}}} < 1.0\%$$
 * **Test 3: Baseline Host Duration Calibration**: We run a contention-free calibration test assigning all tasks to un-contended baseline cores.
   *Success Criteria*: Mean Absolute Percentage Error (MAPE) $\le 0.1\%$ between simulated execution times and trace ground-truth durations.
 * **Test 4: Priority Categorical Preservation**: We compare priority and scheduling class frequency distributions between raw trace inputs and PureEdgeSim using a **Chi-Square ($\chi^2$) Goodness-of-Fit Test**.

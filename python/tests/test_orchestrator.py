@@ -3,7 +3,6 @@ Unit tests for Orchestrator base class, RLOrchestrator, rewards, features, and e
 """
 
 from unittest.mock import MagicMock
-import pytest
 
 from pureedgesim import Orchestrator, RLOrchestrator
 from pureedgesim.types.node import Node, NodeType, Location
