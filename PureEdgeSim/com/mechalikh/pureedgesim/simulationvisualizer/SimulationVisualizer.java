@@ -49,10 +49,12 @@ public class SimulationVisualizer {
     protected SimulationManager simulationManager;
 
     // List of charts to display
-    protected List<Chart> charts = new ArrayList<Chart>(4);
+    protected List<Chart> charts = new ArrayList<Chart>(5);
 
     // Flag that indicates if it is the first time charts are updated
     protected boolean firstTime = true;
+
+    protected ThroughputChart throughputChart;
 
     /**
      * Constructs a new simulation visualizer with the given simulation manager.
@@ -77,6 +79,10 @@ public class SimulationVisualizer {
                     simulationManager);
             charts.add(networkUtilizationChart);
         }
+
+        // Add Throughput real-time chart
+        throughputChart = new ThroughputChart("Throughput", "Time (s)", "Throughput (tasks/min)", simulationManager);
+        charts.add(throughputChart);
     }
 
     /**
@@ -89,7 +95,7 @@ public class SimulationVisualizer {
             SwingWrapper<XYChart> swingWrapper = new SwingWrapper<>(
                     charts.stream().map(Chart::getChart).collect(Collectors.toList()));
             simulationResultsFrame = swingWrapper.displayChartMatrix(); // Display charts
-            simulationResultsFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+            simulationResultsFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         }
         firstTime = false;
         repaint();
@@ -118,11 +124,6 @@ public class SimulationVisualizer {
     }
 
     /**
-     * Saves the charts to disk as PNG images with a resolution of 300 DPI.
-     * 
-     * @throws IOException if an error occurs while saving the images
-     */
-    /**
      * Saves the generated charts as PNG images in a specified directory.
      * The directory structure will be as follows:
      * outputFolder/simStartTime/simulation_simulationId/iteration_iterationNumber__scenarioString/
@@ -144,6 +145,9 @@ public class SimulationVisualizer {
         BitmapEncoder.saveBitmapWithDPI(charts.get(2).getChart(), folderName + "/tasks_success_rate", BitmapFormat.PNG, 300);
         if (SimulationParameters.useOneSharedWanLink) {
             BitmapEncoder.saveBitmapWithDPI(charts.get(3).getChart(), folderName + "/network_usage", BitmapFormat.PNG, 300);
+        }
+        if (throughputChart != null) {
+            BitmapEncoder.saveBitmapWithDPI(throughputChart.getChart(), folderName + "/throughput", BitmapFormat.PNG, 300);
         }
     }
 

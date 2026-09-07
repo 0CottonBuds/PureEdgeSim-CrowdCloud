@@ -197,4 +197,9 @@ public class TraceSimulationThread extends SimulationThread {
 
         SimLog.println(getClass().getSimpleName() + " - All modules were successfully launched...");
     }
+
+    @Override
+    protected SimLog createSimLog(String startTime, boolean isFirstIteration) {
+        return new ResearchSimLog(startTime, isFirstIteration, ResearchSimLog.DEFAULT_WINDOW_SECONDS);
+    }
 }

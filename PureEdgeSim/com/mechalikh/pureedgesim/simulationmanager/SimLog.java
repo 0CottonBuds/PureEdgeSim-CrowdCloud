@@ -587,6 +587,18 @@ public class SimLog {
 		this.tasksSent++;
 	}
 
+	public int getTasksSent() {
+		return tasksSent;
+	}
+
+	public int getTasksFailed() {
+		return tasksFailed;
+	}
+
+	public int getTasksSucceeded() {
+		return tasksSent - tasksFailed;
+	}
+
 	public void incrementTasksFailed(Task task) {
 		this.tasksFailed++;
 		if (task.getOffloadingDestination() == null)
@@ -657,6 +669,21 @@ public class SimLog {
 		}
 		this.transfersCount++;
 
+	}
+
+	/**
+	 * Called when a task's result has been delivered back to the edge device
+	 * (i.e., at the RESULT_RETURN_FINISHED event). The task status is already
+	 * finalized at this point (SUCCESS or FAILED).
+	 *
+	 * This is a no-op in the base SimLog. Subclasses (e.g., ResearchSimLog)
+	 * override this to collect time-series data without modifying event dispatch.
+	 *
+	 * @param task  the completed task
+	 * @param clock the current simulation time (seconds)
+	 */
+	public void onTaskCompleted(Task task, double clock) {
+		// no-op: base SimLog does not use this hook
 	}
 
 }

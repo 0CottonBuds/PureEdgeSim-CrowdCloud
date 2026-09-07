@@ -110,7 +110,7 @@ public class SimulationThread {
 			for (int it = fromIteration; it < simulation.getScenarios().size(); it += step) {
 
 				// New SimLog for each simulation (when parallelism is enabled).
-				simLog = new SimLog(startTime, isFirstIteration);
+				simLog = createSimLog(startTime, isFirstIteration);
 
 				// Clean output folder if it is the first iteration.
 				if (SimulationParameters.cleanOutputFolder && isFirstIteration && fromIteration == 0) {
@@ -228,6 +228,17 @@ public class SimulationThread {
 			ChartsGenerator chartsGenerator = new ChartsGenerator(simLog.getFileName(".csv"));
 			chartsGenerator.generate();
 		}
+	}
+
+	/**
+	 * Factory method to instantiate SimLog or a research subclass.
+	 *
+	 * @param startTime       the simulation start time string
+	 * @param isFirstIteration whether this is the first iteration
+	 * @return a new SimLog instance
+	 */
+	protected SimLog createSimLog(String startTime, boolean isFirstIteration) {
+		return new SimLog(startTime, isFirstIteration);
 	}
 
 }

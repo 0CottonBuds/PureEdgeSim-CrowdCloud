@@ -199,6 +199,7 @@ public class DefaultSimulationManager extends SimulationManager implements OnSim
 
 			edgeOrchestrator.resultsReturned(task);
 			tasksCount++;
+			simLog.onTaskCompleted(task, simulation.clock());
 			break;
 
 		case SHOW_PROGRESS:
